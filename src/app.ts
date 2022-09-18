@@ -47,10 +47,32 @@ class DraDropProject {
     this.attach();
     this.formControl();
   }
+  private gatherUserInput() {
+    const title = this.titleInput.value;
+    const description = this.descriptionInput.value;
+    const users = this.usersInput.value;
+    if (
+      title.trim().length === 0 ||
+      description.trim().length === 0 ||
+      users.trim().length === 0
+    ) {
+      alert('all fields are required');
+      return;
+    }
+    return [title, description, +users];
+  }
+
+  private clearInput() {
+    this.titleInput.value = '';
+    this.descriptionInput.value = '';
+    this.usersInput.value = '';
+  }
+
   @autoBind
   private submitFormHandler(event: Event) {
     event.preventDefault();
-    console.log(this.titleInput.value);
+    this.gatherUserInput();
+    this.clearInput();
   }
 
   private formControl() {
