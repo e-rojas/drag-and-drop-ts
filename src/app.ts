@@ -14,11 +14,48 @@ function autoBind(
   };
   return adjDescriptor;
 }
+class DragAndDropProjectState {
+  private listeners: any[];
+  private projects: any[];
+  private static instance: DragAndDropProjectState;
+  private constructor() {
+    this.listeners = [];
+    this.projects = [];
+  }
+  addProject(title: string, description: string, people: number) {
+    const newProject = {
+      id: Math.random().toString(),
+      title,
+      description,
+      people,
+      // status: ProjectStatus.Active,
+    };
+    this.projects.push(newProject);
+    for (const listenerFn of this.listeners) {
+      listenerFn(this.projects.slice());
+    }
+  }
+  static getInstance() {
+    if (this.instance) {
+      return this.instance;
+    }
+    this.instance = new DragAndDropProjectState();
+    return this.instance;
+  }
 
+  addListener(listenerFn: Function) {
+    this.listeners.push(listenerFn);
+  }
+}
+
+const projectState = DragAndDropProjectState.getInstance();
+
+/* List  */
 class DragAndDropProjectList {
   templateElement: HTMLTemplateElement;
   renderElement: HTMLDivElement;
   sectionElement: HTMLElement;
+  assignProjects: any[] = [];
 
   constructor(private type: 'active' | 'finished') {
     this.templateElement = document.getElementById(
@@ -30,8 +67,24 @@ class DragAndDropProjectList {
       true
     ).firstElementChild as HTMLElement;
     this.sectionElement.id = `${this.type}-projects`;
+    projectState.addListener((projects: any[]) => {
+      this.assignProjects = projects;
+      this.renderProjects();
+    });
     this.attach();
     this.renderContent();
+  }
+
+  private renderProjects() {
+    const listElement = document.getElementById(
+      `${this.type}-projects-list`
+    )! as HTMLUListElement;
+    for (const projectItem of this.assignProjects) {
+      const listItem = document.createElement('li');
+      listItem.textContent = projectItem.title;
+      listElement.appendChild(listItem);
+      //   new DragAndDropProjectItem(this.sectionElement.querySelector('ul')!.id, projectItem);
+    }
   }
 
   private renderContent() {
@@ -78,7 +131,7 @@ class DragAndDropProjectForm {
     this.attach();
     this.formControl();
   }
-  private gatherUserInput() {
+  private gatherUserInput(): [string, string, number] | void {
     const title = this.titleInput.value;
     const description = this.descriptionInput.value;
     const users = this.usersInput.value;
@@ -102,7 +155,11 @@ class DragAndDropProjectForm {
   @autoBind
   private submitFormHandler(event: Event) {
     event.preventDefault();
-    this.gatherUserInput();
+    const userInput = this.gatherUserInput();
+    if (Array.isArray(userInput)) {
+      const [title, description, users] = userInput;
+      projectState.addProject(title, description, users);
+    }
     this.clearInput();
   }
 
