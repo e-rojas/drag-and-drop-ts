@@ -1,4 +1,20 @@
-class projectInput {
+// decorator
+function autoBind(
+  _target: any,
+  _methodName: string,
+  descriptor: PropertyDescriptor
+) {
+  const mainMethod = descriptor.value;
+  const adjDescriptor: PropertyDescriptor = {
+    configurable: true,
+    get() {
+      const boundFunction = mainMethod.bind(this);
+      return boundFunction;
+    },
+  };
+  return adjDescriptor;
+}
+class DraDropProject {
   templateElement: HTMLTemplateElement;
   renderElement: HTMLDivElement;
   formElement: HTMLFormElement;
@@ -31,7 +47,7 @@ class projectInput {
     this.attach();
     this.formControl();
   }
-
+  @autoBind
   private submitFormHandler(event: Event) {
     event.preventDefault();
     console.log(this.titleInput.value);
@@ -49,4 +65,4 @@ class projectInput {
   }
 }
 
-const project = new projectInput();
+const project = new DraDropProject();
