@@ -14,7 +14,38 @@ function autoBind(
   };
   return adjDescriptor;
 }
-class DraDropProject {
+
+class DragAndDropProjectList {
+  templateElement: HTMLTemplateElement;
+  renderElement: HTMLDivElement;
+  sectionElement: HTMLElement;
+
+  constructor(private type: 'active' | 'finished') {
+    this.templateElement = document.getElementById(
+      'project-list'
+    )! as HTMLTemplateElement;
+    this.renderElement = document.getElementById('app')! as HTMLDivElement;
+    this.sectionElement = document.importNode(
+      this.templateElement.content,
+      true
+    ).firstElementChild as HTMLElement;
+    this.sectionElement.id = `${this.type}-projects`;
+    this.attach();
+    this.renderContent();
+  }
+
+  private renderContent() {
+    const listId = `${this.type}-projects-list`;
+    this.sectionElement.querySelector('ul')!.id = listId;
+    this.sectionElement.querySelector('h2')!.textContent =
+      this.type.toUpperCase() + ' PROJECTS';
+  }
+
+  private attach() {
+    this.renderElement.insertAdjacentElement('beforeend', this.sectionElement);
+  }
+}
+class DragAndDropProjectForm {
   templateElement: HTMLTemplateElement;
   renderElement: HTMLDivElement;
   formElement: HTMLFormElement;
@@ -87,4 +118,6 @@ class DraDropProject {
   }
 }
 
-const project = new DraDropProject();
+const projecForm = new DragAndDropProjectForm();
+const activeProjectList = new DragAndDropProjectList('active');
+const finishedProjectList = new DragAndDropProjectList('finished');
