@@ -14,22 +14,42 @@ function autoBind(
   };
   return adjDescriptor;
 }
+
+/* enum project status */
+enum ProjectStatus {
+  Active,
+  Finished,
+}
+
+/* Project */
+class Project {
+  constructor(
+    public id: string,
+    public title: string,
+    public description: string,
+    public people: number,
+    public status: ProjectStatus
+  ) {}
+}
+
+/* Project state */
+type Listener = (items: Project[]) => void;
 class DragAndDropProjectState {
-  private listeners: any[];
+  private listeners: Listener[];
   private projects: any[];
   private static instance: DragAndDropProjectState;
   private constructor() {
     this.listeners = [];
     this.projects = [];
   }
-  addProject(title: string, description: string, people: number) {
-    const newProject = {
-      id: Math.random().toString(),
+  addProject(title: string, description: string, users: number) {
+    const newProject = new Project(
+      Math.random().toString(),
       title,
       description,
-      people,
-      // status: ProjectStatus.Active,
-    };
+      users,
+      ProjectStatus.Active
+    );
     this.projects.push(newProject);
     for (const listenerFn of this.listeners) {
       listenerFn(this.projects.slice());
@@ -43,7 +63,7 @@ class DragAndDropProjectState {
     return this.instance;
   }
 
-  addListener(listenerFn: Function) {
+  addListener(listenerFn: Listener) {
     this.listeners.push(listenerFn);
   }
 }
@@ -55,7 +75,7 @@ class DragAndDropProjectList {
   templateElement: HTMLTemplateElement;
   renderElement: HTMLDivElement;
   sectionElement: HTMLElement;
-  assignProjects: any[] = [];
+  assignProjects: Project[] = [];
 
   constructor(private type: 'active' | 'finished') {
     this.templateElement = document.getElementById(
@@ -67,8 +87,14 @@ class DragAndDropProjectList {
       true
     ).firstElementChild as HTMLElement;
     this.sectionElement.id = `${this.type}-projects`;
-    projectState.addListener((projects: any[]) => {
-      this.assignProjects = projects;
+    projectState.addListener((projects: Project[]) => {
+      const relevantProjects = projects.filter((project) => {
+        if (this.type === 'active') {
+          return project.status === ProjectStatus.Active;
+        }
+        return project.status === ProjectStatus.Finished;
+      });
+      this.assignProjects = relevantProjects;
       this.renderProjects();
     });
     this.attach();
@@ -79,6 +105,7 @@ class DragAndDropProjectList {
     const listElement = document.getElementById(
       `${this.type}-projects-list`
     )! as HTMLUListElement;
+    listElement.innerHTML = '';
     for (const projectItem of this.assignProjects) {
       const listItem = document.createElement('li');
       listItem.textContent = projectItem.title;
