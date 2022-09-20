@@ -70,23 +70,50 @@ class DragAndDropProjectState {
 
 const projectState = DragAndDropProjectState.getInstance();
 
-/* List  */
-class DragAndDropProjectList {
+/* Component */
+abstract class Component<T extends HTMLElement, U extends HTMLElement> {
   templateElement: HTMLTemplateElement;
-  renderElement: HTMLDivElement;
-  sectionElement: HTMLElement;
+  hostElement: T;
+  element: U;
+  constructor(
+    templateId: string,
+    hostElementId: string,
+    insertAtStart: boolean,
+    newElementId?: string
+  ) {
+    this.templateElement = document.getElementById(
+      templateId
+    )! as HTMLTemplateElement;
+    this.hostElement = document.getElementById(hostElementId)! as T;
+    this.element = document.importNode(this.templateElement.content, true)
+      .firstElementChild as U;
+    if (newElementId) {
+      this.element.id = newElementId;
+    }
+
+    this.attach(insertAtStart);
+  }
+
+  private attach(insertAtbeginning: boolean) {
+    this.hostElement.insertAdjacentElement(
+      insertAtbeginning ? 'afterbegin' : 'beforeend',
+      this.element
+    );
+  }
+  abstract configure(): void;
+  abstract renderContent(): void;
+}
+
+/* List  */
+class DragAndDropProjectList extends Component<HTMLDivElement, HTMLElement> {
   assignProjects: Project[] = [];
 
   constructor(private type: 'active' | 'finished') {
-    this.templateElement = document.getElementById(
-      'project-list'
-    )! as HTMLTemplateElement;
-    this.renderElement = document.getElementById('app')! as HTMLDivElement;
-    this.sectionElement = document.importNode(
-      this.templateElement.content,
-      true
-    ).firstElementChild as HTMLElement;
-    this.sectionElement.id = `${this.type}-projects`;
+    super('project-list', 'app', false, `${type}-projects`);
+    this.configure();
+    this.renderContent();
+  }
+  configure(): void {
     projectState.addListener((projects: Project[]) => {
       const relevantProjects = projects.filter((project) => {
         if (this.type === 'active') {
@@ -97,8 +124,6 @@ class DragAndDropProjectList {
       this.assignProjects = relevantProjects;
       this.renderProjects();
     });
-    this.attach();
-    this.renderContent();
   }
 
   private renderProjects() {
@@ -110,25 +135,20 @@ class DragAndDropProjectList {
       const listItem = document.createElement('li');
       listItem.textContent = projectItem.title;
       listElement.appendChild(listItem);
-      //   new DragAndDropProjectItem(this.sectionElement.querySelector('ul')!.id, projectItem);
     }
   }
 
-  private renderContent() {
+  renderContent() {
     const listId = `${this.type}-projects-list`;
-    this.sectionElement.querySelector('ul')!.id = listId;
-    this.sectionElement.querySelector('h2')!.textContent =
+    this.element.querySelector('ul')!.id = listId;
+    this.element.querySelector('h2')!.textContent =
       this.type.toUpperCase() + ' PROJECTS';
-  }
-
-  private attach() {
-    this.renderElement.insertAdjacentElement('beforeend', this.sectionElement);
   }
 }
 class DragAndDropProjectForm {
   templateElement: HTMLTemplateElement;
-  renderElement: HTMLDivElement;
-  formElement: HTMLFormElement;
+  hostElement: HTMLDivElement;
+  element: HTMLFormElement;
   titleInput: HTMLInputElement;
   descriptionInput: HTMLInputElement;
   usersInput: HTMLInputElement;
@@ -137,22 +157,18 @@ class DragAndDropProjectForm {
     this.templateElement = <HTMLTemplateElement>(
       document.getElementById('project-input')!
     );
-    this.renderElement = <HTMLDivElement>document.getElementById('app')!;
+    this.hostElement = <HTMLDivElement>document.getElementById('app')!;
     const importedNode = document.importNode(
       this.templateElement.content,
       true
     );
-    this.formElement = importedNode.firstElementChild as HTMLFormElement;
-    this.formElement.id = 'user-input';
-    this.titleInput = this.formElement.querySelector(
-      '#title'
-    ) as HTMLInputElement;
-    this.descriptionInput = this.formElement.querySelector(
+    this.element = importedNode.firstElementChild as HTMLFormElement;
+    this.element.id = 'user-input';
+    this.titleInput = this.element.querySelector('#title') as HTMLInputElement;
+    this.descriptionInput = this.element.querySelector(
       '#description'
     ) as HTMLInputElement;
-    this.usersInput = this.formElement.querySelector(
-      '#users'
-    ) as HTMLInputElement;
+    this.usersInput = this.element.querySelector('#users') as HTMLInputElement;
 
     /* --- */
     this.attach();
@@ -191,14 +207,11 @@ class DragAndDropProjectForm {
   }
 
   private formControl() {
-    this.formElement.addEventListener(
-      'submit',
-      this.submitFormHandler.bind(this)
-    );
+    this.element.addEventListener('submit', this.submitFormHandler.bind(this));
   }
 
   private attach() {
-    this.renderElement.insertAdjacentElement('afterbegin', this.formElement);
+    this.hostElement.insertAdjacentElement('afterbegin', this.element);
   }
 }
 
