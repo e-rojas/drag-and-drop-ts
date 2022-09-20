@@ -160,9 +160,7 @@ class ProjectItem
     event.dataTransfer!.effectAllowed = 'move';
   }
   @autoBind
-  dragEndHandler(event: DragEvent): void {
-    console.log('event', event);
-  }
+  dragEndHandler(_event: DragEvent): void {}
 
   configure(): void {
     this.element.addEventListener('dragstart', this.dragStartHandler);
