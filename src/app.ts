@@ -42,12 +42,10 @@ class State<T> {
   }
 }
 class DragAndDropProjectState extends State<Project> {
-  //   private listeners: Listener[];
   private projects: Project[];
   private static instance: DragAndDropProjectState;
   private constructor() {
     super();
-    // this.listeners = [];
     this.projects = [];
   }
   addProject(title: string, description: string, users: number) {
@@ -112,6 +110,30 @@ abstract class Component<T extends HTMLElement, U extends HTMLElement> {
   abstract renderContent(): void;
 }
 
+/* list item */
+class ProjectItem extends Component<HTMLUListElement, HTMLLIElement> {
+  private project: Project;
+  get persons() {
+    if (this.project.people === 1) {
+      return '1 person';
+    } else {
+      return `${this.project.people} persons`;
+    }
+  }
+  constructor(hostId: string, project: Project) {
+    super('single-project', hostId, false, project.id);
+    this.project = project;
+    this.configure();
+    this.renderContent();
+  }
+  configure(): void {}
+  renderContent(): void {
+    this.element.querySelector('h2')!.textContent = this.project.title;
+    this.element.querySelector('h3')!.textContent = ` ${this.persons} assigned`;
+    this.element.querySelector('p')!.textContent = this.project.description;
+  }
+}
+
 /* List  */
 class DragAndDropProjectList extends Component<HTMLDivElement, HTMLElement> {
   assignProjects: Project[] = [];
@@ -140,9 +162,7 @@ class DragAndDropProjectList extends Component<HTMLDivElement, HTMLElement> {
     )! as HTMLUListElement;
     listElement.innerHTML = '';
     for (const projectItem of this.assignProjects) {
-      const listItem = document.createElement('li');
-      listItem.textContent = projectItem.title;
-      listElement.appendChild(listItem);
+      new ProjectItem(this.element.querySelector('ul')!.id, projectItem);
     }
   }
 
