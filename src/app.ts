@@ -61,6 +61,20 @@ class DragAndDropProjectState extends State<Project> {
     super();
     this.projects = [];
   }
+
+  moveProject(projectId: string, newStatus: ProjectStatus) {
+    const project = this.projects.find((prj) => prj.id === projectId);
+    if (project && project.status !== newStatus) {
+      project.status = newStatus;
+      this.updateListeners();
+    }
+  }
+
+  private updateListeners() {
+    for (const listenerFn of this.listeners) {
+      listenerFn(this.projects.slice());
+    }
+  }
   addProject(title: string, description: string, users: number) {
     const newProject = new Project(
       Math.random().toString(),
@@ -70,9 +84,7 @@ class DragAndDropProjectState extends State<Project> {
       ProjectStatus.Active
     );
     this.projects.push(newProject);
-    for (const listenerFn of this.listeners) {
-      listenerFn(this.projects.slice());
-    }
+    this.updateListeners();
   }
   static getInstance() {
     if (this.instance) {
@@ -144,7 +156,8 @@ class ProjectItem
   }
   @autoBind
   dragStartHandler(event: DragEvent): void {
-    console.log('event', event);
+    event.dataTransfer!.setData('text/plain', this.project.id);
+    event.dataTransfer!.effectAllowed = 'move';
   }
   @autoBind
   dragEndHandler(event: DragEvent): void {
@@ -176,11 +189,22 @@ class DragAndDropProjectList
   }
 
   @autoBind
-  dragOverHandler(_event: DragEvent): void {
-    const listEl = this.element.querySelector('ul')!;
-    listEl.classList.add('droppable');
+  dragOverHandler(event: DragEvent): void {
+    if (event.dataTransfer && event.dataTransfer.types[0] === 'text/plain') {
+      event.preventDefault();
+      const listEl = this.element.querySelector('ul')!;
+      listEl.classList.add('droppable');
+    }
   }
-  dropHandler(_event: DragEvent): void {}
+
+  @autoBind
+  dropHandler(event: DragEvent): void {
+    const projectId = event.dataTransfer!.getData('text/plain');
+    projectState.moveProject(
+      projectId,
+      this.type === 'active' ? ProjectStatus.Active : ProjectStatus.Finished
+    );
+  }
 
   @autoBind
   dragLeaveHandler(_event: DragEvent): void {
