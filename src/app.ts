@@ -31,15 +31,23 @@ class Project {
     public status: ProjectStatus
   ) {}
 }
-
 /* Project state */
-type Listener = (items: Project[]) => void;
-class DragAndDropProjectState {
-  private listeners: Listener[];
-  private projects: any[];
+type Listener<T> = (items: T[]) => void;
+/* state class */
+class State<T> {
+  protected listeners: Listener<T>[] = [];
+
+  addListener(listenerFn: Listener<T>) {
+    this.listeners.push(listenerFn);
+  }
+}
+class DragAndDropProjectState extends State<Project> {
+  //   private listeners: Listener[];
+  private projects: Project[];
   private static instance: DragAndDropProjectState;
   private constructor() {
-    this.listeners = [];
+    super();
+    // this.listeners = [];
     this.projects = [];
   }
   addProject(title: string, description: string, users: number) {
@@ -63,7 +71,7 @@ class DragAndDropProjectState {
     return this.instance;
   }
 
-  addListener(listenerFn: Listener) {
+  addListener(listenerFn: Listener<Project>) {
     this.listeners.push(listenerFn);
   }
 }
@@ -145,34 +153,23 @@ class DragAndDropProjectList extends Component<HTMLDivElement, HTMLElement> {
       this.type.toUpperCase() + ' PROJECTS';
   }
 }
-class DragAndDropProjectForm {
-  templateElement: HTMLTemplateElement;
-  hostElement: HTMLDivElement;
-  element: HTMLFormElement;
+class DragAndDropProjectForm extends Component<
+  HTMLDivElement,
+  HTMLFormElement
+> {
   titleInput: HTMLInputElement;
   descriptionInput: HTMLInputElement;
   usersInput: HTMLInputElement;
 
   constructor() {
-    this.templateElement = <HTMLTemplateElement>(
-      document.getElementById('project-input')!
-    );
-    this.hostElement = <HTMLDivElement>document.getElementById('app')!;
-    const importedNode = document.importNode(
-      this.templateElement.content,
-      true
-    );
-    this.element = importedNode.firstElementChild as HTMLFormElement;
-    this.element.id = 'user-input';
+    super('project-input', 'app', true, 'user-input');
     this.titleInput = this.element.querySelector('#title') as HTMLInputElement;
     this.descriptionInput = this.element.querySelector(
       '#description'
     ) as HTMLInputElement;
     this.usersInput = this.element.querySelector('#users') as HTMLInputElement;
 
-    /* --- */
-    this.attach();
-    this.formControl();
+    this.configure();
   }
   private gatherUserInput(): [string, string, number] | void {
     const title = this.titleInput.value;
@@ -195,6 +192,8 @@ class DragAndDropProjectForm {
     this.usersInput.value = '';
   }
 
+  renderContent(): void {}
+
   @autoBind
   private submitFormHandler(event: Event) {
     event.preventDefault();
@@ -206,12 +205,8 @@ class DragAndDropProjectForm {
     this.clearInput();
   }
 
-  private formControl() {
+  configure() {
     this.element.addEventListener('submit', this.submitFormHandler.bind(this));
-  }
-
-  private attach() {
-    this.hostElement.insertAdjacentElement('afterbegin', this.element);
   }
 }
 
