@@ -37,4 +37,4 @@ This is a simple project where you can drag and drop elements around the screen.
 ### Links
 
 - Solution URL: [solution](https://github.com/e-rojas/drag-and-drop-ts)
-- Live Site URL: [live site URL](https://e-rojas.github.io/Product-Preview-Card/)
+- Live Site URL: [live site URL](https://e-rojas.github.io/drag-and-drop-ts/)
