@@ -15,6 +15,7 @@ This is a simple project where you can drag and drop elements around the screen.
 
 - Using Typescript with classes in and OOP approach has a lot of advantages. It makes the code more readable and easier to maintain. At the moment I am not sure if it is worth the effort to use Typescript in a small project like this, but I am sure that it will be worth it in bigger projects even though the learning curve is a bit steep is worth it.
 - A good way learning TS in an OOP using interfaces, enums, type aliases, abstract classes and auto-binding when manipulating the DOM.
+- The code has been split into its own modules. This makes it easier to maintain and to reuse the code in other projects.
 
 ### Screenshots
 
@@ -22,7 +23,7 @@ This is a simple project where you can drag and drop elements around the screen.
 
 ## Improvements
 
-- The project is not split into multiple files, but all the code is in one file. This is not a good practice and should be changed.
+- ~~The project is not split into multiple files, but all the code is in one file. This is not a good practice and should be changed.~~
 - The UI styling is not very good. It should be improved for desktop and mobile.
 - Saving the state of the project in the local storage would be a nice feature or to an API.
 
