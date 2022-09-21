@@ -32,6 +32,7 @@ This is a simple project where you can drag and drop elements around the screen.
 - HTML
 - Typescript
 - CSS
+- Webpack
 
 ### Links
 
